@@ -1,15 +1,15 @@
-using BaseMod2.Abstracts;
-using BaseMod2.Extensions;
-using HarmonyLib;
-using MegaCrit.Sts2.Core.Entities.Cards;
-using MegaCrit.Sts2.Core.Helpers;
-using MegaCrit.Sts2.Core.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using BaseLib.Abstracts;
+using BaseLib.Extensions;
+using HarmonyLib;
+using MegaCrit.Sts2.Core.Entities.Cards;
+using MegaCrit.Sts2.Core.Helpers;
+using MegaCrit.Sts2.Core.Models;
 
-namespace BaseMod2.Patches;
+namespace BaseLib.Patches.Content;
 
 /// <summary>
 /// Marks a field as intended to contain a new generated enum value.

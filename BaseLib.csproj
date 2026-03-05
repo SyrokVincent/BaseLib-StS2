@@ -9,12 +9,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Content Include="BaseLib\localization\eng\static_hover_tips.json" />
     <Content Include="LICENSE.txt" />
     <Content Include=".gitignore" />
     <Content Include="mod_manifest.json" />
     <Content Include="project.godot" />
     <Content Include="Notes.txt" />
-    <Content Include="BaseMod2\mod_image.png" />
+    <Content Include="BaseLib\mod_image.png" />
   </ItemGroup>
 
   <ItemGroup>

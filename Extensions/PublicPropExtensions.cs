@@ -1,6 +1,6 @@
 using MegaCrit.Sts2.Core.ValueProps;
 
-namespace BaseMod2.Extensions;
+namespace BaseLib.Extensions;
 
 public static class PublicPropExtensions
 {

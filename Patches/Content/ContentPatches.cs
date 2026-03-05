@@ -1,13 +1,13 @@
-using BaseMod2.Abstracts;
-using BaseMod2.Utils;
-using HarmonyLib;
-using MegaCrit.Sts2.Core.Modding;
-using MegaCrit.Sts2.Core.Models;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using BaseLib.Abstracts;
+using BaseLib.Utils;
+using HarmonyLib;
+using MegaCrit.Sts2.Core.Modding;
+using MegaCrit.Sts2.Core.Models;
 
-namespace BaseMod2.Patches;
+namespace BaseLib.Patches.Content;
 
 [HarmonyPatch(typeof(ModelDb), nameof(ModelDb.InitIds))]
 public static class CustomContentDictionary

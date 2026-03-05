@@ -13,7 +13,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace BaseMod2.Utils;
+namespace BaseLib.Utils;
 
 public static class CommonActions
 {

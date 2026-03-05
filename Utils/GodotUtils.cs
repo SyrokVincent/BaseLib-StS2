@@ -3,7 +3,7 @@ using MegaCrit.Sts2.Core.Assets;
 using MegaCrit.Sts2.Core.Nodes.Combat;
 using System.Collections.Generic;
 
-namespace BaseMod2.Utils;
+namespace BaseLib.Utils;
 
 public static class GodotUtils
 {

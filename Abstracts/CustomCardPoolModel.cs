@@ -1,10 +1,11 @@
-using BaseMod2.Patches;
-using BaseMod2.Utils;
+using BaseLib.Patches;
+using BaseLib.Patches.Content;
+using BaseLib.Utils;
 using Godot;
 using HarmonyLib;
 using MegaCrit.Sts2.Core.Models;
 
-namespace BaseMod2.Abstracts;
+namespace BaseLib.Abstracts;
 
 //All card pools must either be a character pool or a shared pool, otherwise they will not be found.
 //Character pools are found from CharacterModel.CardPool

@@ -1,10 +1,10 @@
-using BaseMod2.Abstracts;
-using BaseMod2.Extensions;
+using System;
+using BaseLib.Abstracts;
+using BaseLib.Extensions;
 using HarmonyLib;
 using MegaCrit.Sts2.Core.Models;
-using System;
 
-namespace BaseMod2.Patches;
+namespace BaseLib.Patches.Content;
 
 [HarmonyPatch(typeof(ModelDb), nameof(ModelDb.GetEntry))]
 public class PrefixIdPatch

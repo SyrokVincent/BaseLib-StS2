@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace BaseMod2.Extensions;
+namespace BaseLib.Extensions;
 
 public static class IEnumerableExtensions
 {

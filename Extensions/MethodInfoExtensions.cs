@@ -3,7 +3,7 @@ using System;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 
-namespace BaseMod2.Extensions;
+namespace BaseLib.Extensions;
 
 public static class MethodInfoExtensions
 {

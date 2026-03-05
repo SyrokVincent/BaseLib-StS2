@@ -1,7 +1,10 @@
-using BaseMod2.Abstracts;
-using BaseMod2.Extensions;
-using BaseMod2.Utils;
-using BaseMod2.Utils.Patching;
+using System;
+using System.Collections.Generic;
+using System.Reflection.Emit;
+using BaseLib.Abstracts;
+using BaseLib.Extensions;
+using BaseLib.Utils;
+using BaseLib.Utils.Patching;
 using Godot;
 using HarmonyLib;
 using MegaCrit.Sts2.Core.Commands;
@@ -9,11 +12,8 @@ using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Nodes.Cards;
-using System;
-using System.Collections.Generic;
-using System.Reflection.Emit;
 
-namespace BaseMod2.Patches;
+namespace BaseLib.Patches.Content;
 
 
 public class CustomPiles

@@ -1,12 +1,12 @@
-using BaseMod2.Extensions;
-using BaseMod2.Utils.Patching;
+using System.Collections.Generic;
+using BaseLib.Extensions;
+using BaseLib.Utils.Patching;
 using HarmonyLib;
 using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Localization.DynamicVars;
 using MegaCrit.Sts2.Core.Models;
-using System.Collections.Generic;
 
-namespace BaseMod2.Patches;
+namespace BaseLib.Patches.UI;
 
 [HarmonyPatch(typeof(CardModel), "HoverTips", MethodType.Getter)]
 public class ExtraTooltips

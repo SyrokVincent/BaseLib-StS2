@@ -6,7 +6,7 @@ using MegaCrit.Sts2.Core.Nodes.Pooling;
 using System;
 using System.Collections.Generic;
 
-namespace BaseMod2.Utils;
+namespace BaseLib.Utils;
 
 /// <summary>
 /// Utility class for adding custom poolables to <seealso cref="NodePool"/>

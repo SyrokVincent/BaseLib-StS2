@@ -1,12 +1,13 @@
-using BaseMod2.Patches;
 using Godot;
 using HarmonyLib;
 using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Localization.DynamicVars;
 using MegaCrit.Sts2.Core.Models;
 using System.Linq;
+using BaseLib.Patches;
+using BaseLib.Patches.Content;
 
-namespace BaseMod2.Abstracts;
+namespace BaseLib.Abstracts;
 
 public abstract class CustomCardModel : CardModel, ICustomModel
 {

@@ -1,8 +1,9 @@
-using BaseMod2.Patches;
 using MegaCrit.Sts2.Core.Models;
 using System.Collections.Generic;
+using BaseLib.Patches;
+using BaseLib.Patches.Content;
 
-namespace BaseMod2.Abstracts;
+namespace BaseLib.Abstracts;
 
 public abstract class CustomRelicPoolModel : RelicPoolModel, ICustomModel
 {

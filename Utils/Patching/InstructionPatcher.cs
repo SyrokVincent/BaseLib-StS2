@@ -1,4 +1,4 @@
-using BaseMod2.Extensions;
+using BaseLib.Extensions;
 using HarmonyLib;
 using MegaCrit.Sts2.Core.Logging;
 using System;
@@ -6,10 +6,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Emit;
 
-namespace BaseMod2.Utils.Patching;
+namespace BaseLib.Utils.Patching;
 
 public class InstructionPatcher(IEnumerable<CodeInstruction> instructions)
 {
+    //Placeholder-ish, other existing tools may be easier to use. Will need time to see.
     private readonly List<CodeInstruction> code = [.. instructions];
     private int index = -1, lastMatchStart = -1;
 

@@ -3,10 +3,10 @@ using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Nodes.Cards;
 
-namespace BaseMod2.Abstracts;
+namespace BaseLib.Abstracts;
 
 /// <summary>
-/// Patches for functionality found here <seealso cref="Godot.BaseMod2.Patches.CustomPiles"/>
+/// Patches for functionality found here <seealso cref="Godot.BaseLib.Patches.CustomPiles"/>
 /// </summary>
 public abstract class CustomPile : CardPile
 {

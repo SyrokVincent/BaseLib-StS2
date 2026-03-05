@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 
-namespace BaseMod2.Abstracts;
+namespace BaseLib.Abstracts;
 
 public abstract class PlaceholderCharacterModel : CustomCharacterModel
 {
