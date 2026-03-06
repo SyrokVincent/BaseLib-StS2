@@ -38,10 +38,10 @@ public static class CustomContentDictionary
     }
     private static bool IsValidPool(Type modelType, Type poolType)
     {
-        Type basePoolType = poolType.BaseType;
+        var basePoolType = poolType.BaseType;
         while (basePoolType != null)
         {
-            if (_poolTypes.TryGetValue(basePoolType, out Type poolValueType))
+            if (_poolTypes.TryGetValue(basePoolType, out var poolValueType))
             {
                 return modelType.IsAssignableTo(poolValueType);
             }
@@ -54,7 +54,7 @@ public static class CustomContentDictionary
     [HarmonyPostfix]
     static void ConvertTypesToModels()
     {
-        BaseMod.Logger.Info($"Custom Models: {_customTypes.Count}");
+        MainFile.Logger.Info($"Custom Models: {_customTypes.Count}");
     }
 }
 

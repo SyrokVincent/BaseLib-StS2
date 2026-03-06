@@ -21,14 +21,14 @@ public abstract class CustomCardModel : CardModel, ICustomModel
         if (autoAdd) CustomContentDictionary.AddModel(GetType());
     }
 
-    public virtual Texture2D CustomFrame => null;
+    public virtual Texture2D? CustomFrame => null;
 }
 
 [HarmonyPatch(typeof(CardModel), nameof(CardModel.Frame), MethodType.Getter)]
 class CustomCardFrame
 {
     [HarmonyPrefix]
-    static bool UseAltTexture(CardModel __instance, ref Texture2D __result)
+    static bool UseAltTexture(CardModel __instance, ref Texture2D? __result)
     {
         if (__instance is CustomCardModel customCard)
         {

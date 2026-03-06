@@ -1,6 +1,5 @@
 using System;
 using System.Runtime.InteropServices;
-using BaseLib.Patches;
 using BaseLib.Patches.Content;
 using HarmonyLib;
 using MegaCrit.Sts2.Core.Modding;
@@ -8,7 +7,7 @@ using MegaCrit.Sts2.Core.Modding;
 namespace BaseLib;
 
 [ModInitializer(nameof(Initialize))]
-public static class BaseMod
+public static class MainFile
 {
     public const string ModId = "BaseLib";
 

@@ -18,44 +18,45 @@ public abstract class CustomCharacterModel : CharacterModel, ICustomModel
     /// <summary>
     /// Override this or place your scene at res://scenes/creature_visuals/class_name.tscn
     /// </summary>
-    public virtual string CustomVisualPath => null;
-    public virtual string CustomTrailPath => null;
-    public virtual string CustomIconTexturePath => null; //smaller icon used in popup showing saved run info
-    public virtual string CustomIconPath => null; //top left while in run, and also icon for compendium pool filter
-    public virtual string CustomEnergyCounterPath => null;
-    public virtual string CustomRestSiteAnimPath => null;
-    public virtual string CustomMerchantAnimPath => null;
-    public virtual string CustomArmPointingTexturePath => null;
-    public virtual string CustomArmRockTexturePath => null;
-    public virtual string CustomArmPaperTexturePath => null;
-    public virtual string CustomArmScissorsTexturePath => null;
+    public virtual string? CustomVisualPath => null;
+    public virtual string? CustomTrailPath => null;
+    public virtual string? CustomIconTexturePath => null; //smaller icon used in popup showing saved run info
+    public virtual string? CustomIconPath => null; //top left while in run, and also icon for compendium pool filter
+    public virtual string? CustomEnergyCounterPath => null;
+    public virtual string? CustomRestSiteAnimPath => null;
+    public virtual string? CustomMerchantAnimPath => null;
+    public virtual string? CustomArmPointingTexturePath => null;
+    public virtual string? CustomArmRockTexturePath => null;
+    public virtual string? CustomArmPaperTexturePath => null;
+    public virtual string? CustomArmScissorsTexturePath => null;
 
     /// <summary>
     /// Override this or place your scene at res://scenes/screens/char_select/char_select_bg_class_name.tscn
     /// </summary>
-    public virtual string CustomCharacterSelectBg => null;
-    public virtual string CustomCharacterSelectIconPath => null;
-    public virtual string CustomCharacterSelectLockedIconPath => null;
-    public virtual string CustomCharacterSelectTransitionPath => null;
-    public virtual string CustomMapMarkerPath => null;
-    public virtual string CustomAttackSfx => null;
-    public virtual string CustomCastSfx => null;
-    public virtual string CustomDeathSfx => null;
+    public virtual string? CustomCharacterSelectBg => null;
+    public virtual string? CustomCharacterSelectIconPath => null;
+    public virtual string? CustomCharacterSelectLockedIconPath => null;
+    public virtual string? CustomCharacterSelectTransitionPath => null;
+    public virtual string? CustomMapMarkerPath => null;
+    public virtual string? CustomAttackSfx => null;
+    public virtual string? CustomCastSfx => null;
+    public virtual string? CustomDeathSfx => null;
 
     //Defaults
     public override int StartingGold => 99;
     public override float AttackAnimDelay => 0.15f;
     public override float CastAnimDelay => 0.25f;
 
-    public override CharacterModel UnlocksAfterRunAs => null;
+    public override CharacterModel? UnlocksAfterRunAs => null;
 
 
     /// <summary>
     /// By default, will convert a scene containing the necessary nodes into a NCreatureVisuals even if it is not one.
     /// </summary>
     /// <returns></returns>
-    public virtual NCreatureVisuals CreateCustomVisuals()
+    public virtual NCreatureVisuals? CreateCustomVisuals()
     {
+        if (CustomVisualPath == null) return null;
         return GodotUtils.CreatureVisualsFromScene(CustomVisualPath);
     }
 
@@ -65,17 +66,17 @@ public abstract class CustomCharacterModel : CharacterModel, ICustomModel
     /// Using <seealso cref="SetupAnimationState"/> is suggested.
     /// </summary>
     /// <returns></returns>
-    public virtual CreatureAnimator SetupCustomAnimationStates(MegaSprite controller)
+    public virtual CreatureAnimator? SetupCustomAnimationStates(MegaSprite controller)
     {
         return null;
     }
 
     public static CreatureAnimator SetupAnimationState(MegaSprite controller, string idleName, 
-        string deadName = null, bool deadLoop = false,
-        string hitName = null, bool hitLoop = false,
-        string attackName = null, bool attackLoop = false,
-        string castName = null, bool castLoop = false,
-        string relaxedName = null, bool relaxedLoop = true)
+        string? deadName = null, bool deadLoop = false,
+        string? hitName = null, bool hitLoop = false,
+        string? attackName = null, bool attackLoop = false,
+        string? castName = null, bool castLoop = false,
+        string? relaxedName = null, bool relaxedLoop = true)
     {
         var idleAnim = new AnimState(idleName, true);
         var deadAnim = deadName == null ? idleAnim : new AnimState(deadName, deadLoop);
@@ -95,15 +96,15 @@ public abstract class CustomCharacterModel : CharacterModel, ICustomModel
                 NextState = idleAnim
             };
 
-        AnimState relaxedAnim;
+        AnimState relaxed;
         if (relaxedName == null)
         {
-            relaxedAnim = idleAnim;
+            relaxed = idleAnim;
         }
         else
         {
-            relaxedAnim = new AnimState(relaxedName, relaxedLoop);
-            relaxedAnim.AddBranch("Idle", idleAnim);
+            relaxed = new AnimState(relaxedName, relaxedLoop);
+            relaxed.AddBranch("Idle", idleAnim);
         }
 
         var animator = new CreatureAnimator(idleAnim, controller);
@@ -113,7 +114,7 @@ public abstract class CustomCharacterModel : CharacterModel, ICustomModel
         animator.AddAnyState("Hit", hitAnim);
         animator.AddAnyState("Attack", attackAnim);
         animator.AddAnyState("Cast", castAnim);
-        animator.AddAnyState("Relaxed", relaxedAnim);
+        animator.AddAnyState("Relaxed", relaxed);
 
         return animator;
     }
@@ -141,7 +142,7 @@ public class ModelDbCustomCharacters
 class CustomCharacterVisualPath
 {
     [HarmonyPrefix]
-    static bool UseCustomScene(CharacterModel __instance, ref string __result)
+    static bool UseCustomScene(CharacterModel __instance, ref string? __result)
     {
         if (__instance is not CustomCharacterModel customChar) return true;
 
@@ -154,7 +155,7 @@ class CustomCharacterVisualPath
 class CustomCharacterVisuals
 {
     [HarmonyPrefix]
-    static bool UseCustomVisuals(CharacterModel __instance, ref NCreatureVisuals __result)
+    static bool UseCustomVisuals(CharacterModel __instance, ref NCreatureVisuals? __result)
     {
         if (__instance is not CustomCharacterModel customChar) return true;
 
@@ -167,7 +168,7 @@ class CustomCharacterVisuals
 class GenerateAnimatorPatch
 {
     [HarmonyPrefix]
-    static bool CustomAnimator(CharacterModel __instance, MegaSprite controller, ref CreatureAnimator __result)
+    static bool CustomAnimator(CharacterModel __instance, MegaSprite controller, ref CreatureAnimator? __result)
     {
         if (__instance is not CustomCharacterModel customChar)
             return true;
@@ -182,7 +183,7 @@ class GenerateAnimatorPatch
 class TrailPath
 {
     [HarmonyPrefix]
-    static bool Custom(CharacterModel __instance, ref string __result)
+    static bool Custom(CharacterModel __instance, ref string? __result)
     {
         if (__instance is not CustomCharacterModel customChar)
             return true;
@@ -196,7 +197,7 @@ class TrailPath
 class IconTexturePath
 {
     [HarmonyPrefix]
-    static bool Custom(CharacterModel __instance, ref string __result)
+    static bool Custom(CharacterModel __instance, ref string? __result)
     {
         if (__instance is not CustomCharacterModel customChar)
             return true;
@@ -210,7 +211,7 @@ class IconTexturePath
 class IconPath
 {
     [HarmonyPrefix]
-    static bool Custom(CharacterModel __instance, ref string __result)
+    static bool Custom(CharacterModel __instance, ref string? __result)
     {
         if (__instance is not CustomCharacterModel customChar)
             return true;
@@ -224,7 +225,7 @@ class IconPath
 class EnergyCounterPath
 {
     [HarmonyPrefix]
-    static bool Custom(CharacterModel __instance, ref string __result)
+    static bool Custom(CharacterModel __instance, ref string? __result)
     {
         if (__instance is not CustomCharacterModel customChar)
             return true;
@@ -238,7 +239,7 @@ class EnergyCounterPath
 class RestSiteAnimPath
 {
     [HarmonyPrefix]
-    static bool Custom(CharacterModel __instance, ref string __result)
+    static bool Custom(CharacterModel __instance, ref string? __result)
     {
         if (__instance is not CustomCharacterModel customChar)
             return true;
@@ -252,7 +253,7 @@ class RestSiteAnimPath
 class MerchantAnimPath
 {
     [HarmonyPrefix]
-    static bool Custom(CharacterModel __instance, ref string __result)
+    static bool Custom(CharacterModel __instance, ref string? __result)
     {
         if (__instance is not CustomCharacterModel customChar)
             return true;
@@ -266,7 +267,7 @@ class MerchantAnimPath
 class ArmPointingTexturePath
 {
     [HarmonyPrefix]
-    static bool Custom(CharacterModel __instance, ref string __result)
+    static bool Custom(CharacterModel __instance, ref string? __result)
     {
         if (__instance is not CustomCharacterModel customChar)
             return true;
@@ -280,7 +281,7 @@ class ArmPointingTexturePath
 class ArmRockTexturePath
 {
     [HarmonyPrefix]
-    static bool Custom(CharacterModel __instance, ref string __result)
+    static bool Custom(CharacterModel __instance, ref string? __result)
     {
         if (__instance is not CustomCharacterModel customChar)
             return true;
@@ -294,7 +295,7 @@ class ArmRockTexturePath
 class ArmPaperTexturePath
 {
     [HarmonyPrefix]
-    static bool Custom(CharacterModel __instance, ref string __result)
+    static bool Custom(CharacterModel __instance, ref string? __result)
     {
         if (__instance is not CustomCharacterModel customChar)
             return true;
@@ -308,7 +309,7 @@ class ArmPaperTexturePath
 class ArmScissorsTexturePath
 {
     [HarmonyPrefix]
-    static bool Custom(CharacterModel __instance, ref string __result)
+    static bool Custom(CharacterModel __instance, ref string? __result)
     {
         if (__instance is not CustomCharacterModel customChar)
             return true;
@@ -322,7 +323,7 @@ class ArmScissorsTexturePath
 class CharacterSelectTransitionPath
 {
     [HarmonyPrefix]
-    static bool Custom(CharacterModel __instance, ref string __result)
+    static bool Custom(CharacterModel __instance, ref string? __result)
     {
         if (__instance is not CustomCharacterModel customChar)
             return true;
@@ -336,7 +337,7 @@ class CharacterSelectTransitionPath
 class CustomCharacterSelectBg
 {
     [HarmonyPrefix]
-    static bool UseCustomScene(CharacterModel __instance, ref string __result)
+    static bool UseCustomScene(CharacterModel __instance, ref string? __result)
     {
         if (__instance is not CustomCharacterModel customChar) return true;
 
@@ -350,7 +351,7 @@ class CustomCharacterSelectBg
 class CharacterSelectIconPath
 {
     [HarmonyPrefix]
-    static bool Custom(CharacterModel __instance, ref string __result)
+    static bool Custom(CharacterModel __instance, ref string? __result)
     {
         if (__instance is not CustomCharacterModel customChar)
             return true;
@@ -364,7 +365,7 @@ class CharacterSelectIconPath
 class CharacterSelectLockedIconPath
 {
     [HarmonyPrefix]
-    static bool Custom(CharacterModel __instance, ref string __result)
+    static bool Custom(CharacterModel __instance, ref string? __result)
     {
         if (__instance is not CustomCharacterModel customChar)
             return true;
@@ -378,7 +379,7 @@ class CharacterSelectLockedIconPath
 class MapMarkerPath
 {
     [HarmonyPrefix]
-    static bool Custom(CharacterModel __instance, ref string __result)
+    static bool Custom(CharacterModel __instance, ref string? __result)
     {
         if (__instance is not CustomCharacterModel customChar)
             return true;
@@ -394,7 +395,7 @@ class MapMarkerPath
 class AttackSfx
 {
     [HarmonyPrefix]
-    static bool Custom(CharacterModel __instance, ref string __result)
+    static bool Custom(CharacterModel __instance, ref string? __result)
     {
         if (__instance is not CustomCharacterModel customChar)
             return true;
@@ -408,7 +409,7 @@ class AttackSfx
 class CastSfx
 {
     [HarmonyPrefix]
-    static bool Custom(CharacterModel __instance, ref string __result)
+    static bool Custom(CharacterModel __instance, ref string? __result)
     {
         if (__instance is not CustomCharacterModel customChar)
             return true;
@@ -422,7 +423,7 @@ class CastSfx
 class DeathSfx
 {
     [HarmonyPrefix]
-    static bool Custom(CharacterModel __instance, ref string __result)
+    static bool Custom(CharacterModel __instance, ref string? __result)
     {
         if (__instance is not CustomCharacterModel customChar)
             return true;

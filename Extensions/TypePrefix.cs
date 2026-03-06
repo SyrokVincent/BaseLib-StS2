@@ -4,9 +4,10 @@ namespace BaseLib.Extensions;
 
 public static class TypePrefix
 {
-    public const char PREFIX_SPLIT_CHAR = '-';
+    public const char PrefixSplitChar = '-';
     public static string GetPrefix(this Type t)
     {
-        return $"{t.Namespace[..t.Namespace.IndexOf('.')].ToUpperInvariant()}{PREFIX_SPLIT_CHAR}";
+        return t.Namespace == null ? "" : 
+            $"{t.Namespace[..t.Namespace.IndexOf('.')].ToUpperInvariant()}{PrefixSplitChar}";
     }
 }

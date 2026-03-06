@@ -37,7 +37,7 @@ public static class GodotUtils
 
         if (requiredNames.Count > 0)
         {
-            BaseMod.Logger.Warn($"Created {target.GetType().FullName} missing required children {string.Join(" ", requiredNames)}");
+            MainFile.Logger.Warn($"Created {target.GetType().FullName} missing required children {string.Join(" ", requiredNames)}");
         }
 
         source.QueueFree();

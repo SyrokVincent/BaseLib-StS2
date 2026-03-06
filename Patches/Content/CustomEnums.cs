@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using BaseLib.Abstracts;
 using BaseLib.Extensions;
@@ -17,9 +14,9 @@ namespace BaseLib.Patches.Content;
 /// </summary>
 /// <param name="name">This is relevant only if the field is intended to be a keyword. If not supplied, field name will be used.</param>
 [AttributeUsage(AttributeTargets.Field, Inherited = false, AllowMultiple = false)]
-public sealed class CustomEnumAttribute(string name = null) : Attribute
+public sealed class CustomEnumAttribute(string? name = null) : Attribute
 {
-    public string Name { get; } = name;
+    public string? Name { get; } = name;
 }
 
 public static class CustomKeywords
@@ -43,7 +40,7 @@ public static class CustomEnums
     }
     private class KeyGenerator //will break an enum used like bitflags
     {
-        private static readonly Dictionary<Type, Func<object, object>> incrementers = new()
+        private static readonly Dictionary<Type, Func<object, object>> Incrementers = new()
         {
             { typeof(byte), (val) => ((byte)val) + 1 },
             { typeof(sbyte), (val) => ((sbyte)val) + 1 },
@@ -54,37 +51,41 @@ public static class CustomEnums
             { typeof(long), (val) => ((long)val) + 1 },
             { typeof(ulong), (val) => ((ulong)val) + 1 }
         };
-        private object nextKey;
-        private readonly Type underlyingType;
-        private readonly Func<object, object> increment;
+        private object _nextKey;
+        private readonly Func<object, object> _increment;
 
         public KeyGenerator(Type t)
         {
-            if (!t.IsEnum) throw new ArgumentException("Attempted to construct KeyGenerator with non-enum type " + t.FullName);
-
-            var values = t.GetEnumValuesAsUnderlyingType();
-            underlyingType = Enum.GetUnderlyingType(t);
-
-            nextKey = Convert.ChangeType(0, underlyingType);
-
-            if (values.Length == 0) return;
-            increment = incrementers[underlyingType];
-
-            foreach (var v in values)
+            if (!t.IsEnum)
             {
-                if (((IComparable)v).CompareTo(nextKey) >= 0)
-                {
-                    nextKey = increment(v);
-                }
+                _increment = o => o;
+                throw new ArgumentException("Attempted to construct KeyGenerator with non-enum type " + t.FullName);
             }
 
-            BaseMod.Logger.Info($"Generated KeyGenerator for enum {t.FullName} with starting value {nextKey}");
+            var values = t.GetEnumValuesAsUnderlyingType();
+            var underlyingType = Enum.GetUnderlyingType(t);
+
+            _nextKey = Convert.ChangeType(0, underlyingType);
+            _increment = Incrementers[underlyingType];
+
+            if (values.Length > 0)
+            {
+                foreach (var v in values)
+                {
+                    if (((IComparable)v).CompareTo(_nextKey) >= 0)
+                    {
+                        _nextKey = _increment(v);
+                    }
+                }
+            }
+            
+            MainFile.Logger.Info($"Generated KeyGenerator for enum {t.FullName} with starting value {_nextKey}");
         }
 
         public object GetKey()
         {
-            var returnVal = nextKey;
-            nextKey = increment(nextKey);
+            var returnVal = _nextKey;
+            _nextKey = _increment(_nextKey);
             return returnVal;
         }
     }
@@ -102,10 +103,9 @@ class GetCustomLocKey
         harmony.Patch(originalMethod, prefix: new HarmonyMethod(prefix));
     }
 
-    static bool UseCustomKeywordMap(CardKeyword keyword, ref string __result)
+    static bool UseCustomKeywordMap(CardKeyword keyword, ref string? __result)
     {
-        if (CustomKeywords.KeywordIDs.TryGetValue((int) keyword, out __result)) return false;
-        return true;
+        return !CustomKeywords.KeywordIDs.TryGetValue((int) keyword, out __result);
     }
 }
 
@@ -119,40 +119,44 @@ class GenEnumValues
     [HarmonyPrefix]
     static void FindAndGenerate()
     {
-        foreach (Type t in ReflectionHelper.ModTypes)
+        foreach (var t in ReflectionHelper.ModTypes)
         {
             var fields = t.GetFields().Where(field => Attribute.IsDefined(field, typeof(CustomEnumAttribute)));
 
-            foreach (FieldInfo field in fields)
+            foreach (var field in fields)
             {
                 if (!field.FieldType.IsEnum)
                 {
-                    throw new Exception($"Field {field.DeclaringType.FullName}.{field.Name} should be an enum type for CustomEnum");
+                    throw new Exception($"Field {field.DeclaringType?.FullName}.{field.Name} should be an enum type for CustomEnum");
                 }
                 if (!field.IsStatic)
                 {
-                    throw new Exception($"Field {field.DeclaringType.FullName}.{field.Name} should be static for CustomEnum");
+                    throw new Exception($"Field {field.DeclaringType?.FullName}.{field.Name} should be static for CustomEnum");
+                }
+                if (field.DeclaringType == null)
+                {
+                    continue;
                 }
 
-                CustomEnumAttribute keywordInfo = field.GetCustomAttribute<CustomEnumAttribute>();
-
-                object key = CustomEnums.GenerateKey(field.FieldType);
+                var keywordInfo = field.GetCustomAttribute<CustomEnumAttribute>();
+                var key = CustomEnums.GenerateKey(field.FieldType);
                 field.SetValue(null, key);
 
                 if (field.FieldType == typeof(CardKeyword))
                 {
-                    string keywordID = field.DeclaringType.GetPrefix() + (keywordInfo.Name ?? field.Name).ToUpperInvariant();
-                    CustomKeywords.KeywordIDs.Add((int) key, keywordID);
+                    var keywordId = field.DeclaringType.GetPrefix() + (keywordInfo?.Name ?? field.Name).ToUpperInvariant();
+                    CustomKeywords.KeywordIDs.Add((int) key, keywordId);
                 }
 
-                if (field.FieldType == typeof(PileType))
-                {
-                    if (t.IsAssignableTo(typeof(CustomPile)))
-                    {
-                        ConstructorInfo constructor = t.GetConstructor(BindingFlags.Instance | BindingFlags.Public, []) ?? throw new Exception($"CustomPile {t.FullName} with custom PileType does not have an accessible no-parameter constructor");
-                        CustomPiles.RegisterCustomPile((PileType)field.GetValue(null), () => (CustomPile)(constructor.Invoke(null)));
-                    }
-                }
+                if (field.FieldType != typeof(PileType)) continue;
+                if (!t.IsAssignableTo(typeof(CustomPile))) continue;
+                
+                var constructor = t.GetConstructor(BindingFlags.Instance | BindingFlags.Public, []) ?? throw new Exception($"CustomPile {t.FullName} with custom PileType does not have an accessible no-parameter constructor");
+                
+                var pileType = (PileType?)field.GetValue(null);
+                if (pileType == null) throw new Exception($"Failed to be set up custom PileType in {t.FullName}");
+                
+                CustomPiles.RegisterCustomPile((PileType) pileType, () => (CustomPile) constructor.Invoke(null));
             }
         }
     }

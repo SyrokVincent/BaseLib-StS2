@@ -14,15 +14,23 @@ namespace BaseLib.Utils;
 /// </summary>
 public class GeneratedNodePool
 {
-    private static Dictionary<Type, INodePool> _pools = null;
+    private static Dictionary<Type, INodePool>? _pools;
+    internal static readonly Variant NameStr = Variant.CreateFrom("name");
+    internal static readonly Variant CallableStr = Variant.CreateFrom("callable");
+    internal static readonly Variant SignalStr = Variant.CreateFrom("signal");
 
     public static GeneratedNodePool<T> Init<T>(Func<T> constructor, int prewarmCount) where T : Node, IPoolable
     {
-        Type typeFromHandle = typeof(T);
+        var typeFromHandle = typeof(T);
         
-        _pools ??= (Dictionary<Type, INodePool>)AccessTools.DeclaredField(typeof(NodePool), "_pools").GetValue(null);
+        _pools ??= (Dictionary<Type, INodePool>?)AccessTools.DeclaredField(typeof(NodePool), "_pools").GetValue(null);
 
-        if (_pools.TryGetValue(typeFromHandle, out INodePool _))
+        if (_pools == null)
+        {
+            throw new Exception("Failed to access _pools from NodePool");
+        }
+
+        if (_pools.TryGetValue(typeFromHandle, out _))
         {
             throw new InvalidOperationException($"Tried to init GeneratedNodePool for type {typeof(T)} but it's already initialized!");
         }
@@ -36,9 +44,6 @@ public class GeneratedNodePool
 
 public class GeneratedNodePool<T> : INodePool where T : Node, IPoolable
 {
-    private static Variant _nameStr = Variant.CreateFrom("name");
-    private static Variant _callableStr = Variant.CreateFrom("callable");
-    private static Variant _signalStr = Variant.CreateFrom("signal");
 
     private readonly Func<T> _constructor;
 
@@ -120,19 +125,19 @@ public class GeneratedNodePool<T> : INodePool where T : Node, IPoolable
     {
         foreach (Godot.Collections.Dictionary signal4 in obj.GetSignalList())
         {
-            StringName signal = signal4[_nameStr].AsStringName();
+            StringName signal = signal4[GeneratedNodePool.NameStr].AsStringName();
             foreach (Godot.Collections.Dictionary signalConnection in obj.GetSignalConnectionList(signal))
             {
-                Callable callable = signalConnection[_callableStr].AsCallable();
-                Signal signal2 = signalConnection[_signalStr].AsSignal();
+                Callable callable = signalConnection[GeneratedNodePool.CallableStr].AsCallable();
+                Signal signal2 = signalConnection[GeneratedNodePool.SignalStr].AsSignal();
                 DisconnectSignal(callable, signal2);
             }
         }
 
         foreach (Godot.Collections.Dictionary incomingConnection in obj.GetIncomingConnections())
         {
-            Callable callable2 = incomingConnection[_callableStr].AsCallable();
-            Signal signal3 = incomingConnection[_signalStr].AsSignal();
+            Callable callable2 = incomingConnection[GeneratedNodePool.CallableStr].AsCallable();
+            Signal signal3 = incomingConnection[GeneratedNodePool.SignalStr].AsSignal();
             DisconnectSignal(callable2, signal3);
         }
 
@@ -144,26 +149,25 @@ public class GeneratedNodePool<T> : INodePool where T : Node, IPoolable
 
     private void DisconnectSignal(Callable callable, Signal signal)
     {
-        GodotObject target = callable.Target;
+        GodotObject? target = callable.Target;
         if (target == null && callable.Method == null)
         {
             return;
         }
 
-        StringName name = signal.Name;
-        Node node = target as Node;
-        if (node == null || node.IsInsideTree())
+        var name = signal.Name;
+        var node = target as Node;
+        if (node != null && !node.IsInsideTree()) return;
+        
+        var owner = signal.Owner;
+        var node2 = owner as Node;
+        if (node != null && node.HasSignal(name) && node.IsConnected(name, callable))
         {
-            GodotObject owner = signal.Owner;
-            Node node2 = owner as Node;
-            if (node != null && node.HasSignal(name) && node.IsConnected(name, callable))
-            {
-                node.Disconnect(name, callable);
-            }
-            else if (node2 != null && node2.HasSignal(name) && node2.IsConnected(name, callable))
-            {
-                node2.Disconnect(name, callable);
-            }
+            node.Disconnect(name, callable);
+        }
+        else if (node2 != null && node2.HasSignal(name) && node2.IsConnected(name, callable))
+        {
+            node2.Disconnect(name, callable);
         }
     }
 }

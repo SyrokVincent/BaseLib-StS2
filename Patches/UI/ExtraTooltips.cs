@@ -24,7 +24,7 @@ public class ExtraTooltips
             .Insert([
                 CodeInstruction.LoadLocal(0), //Load stored list
                 CodeInstruction.LoadArgument(0), //Load card
-                CodeInstruction.Call(()=>ExtraTooltips.AddTips(default, default)), //add tips to list
+                CodeInstruction.Call(typeof(ExtraTooltips), "AddTips"), //add tips to list
             ]);
     }
 
@@ -34,7 +34,7 @@ public class ExtraTooltips
         foreach (DynamicVar var in card.DynamicVars.Values)
         {
             var tipMaker = DynamicVarExtensions.DynamicVarTips[var];
-            IHoverTip tip = DynamicVarExtensions.DynamicVarTips[var]?.Invoke();
+            var tip = DynamicVarExtensions.DynamicVarTips[var]?.Invoke();
             if (tip != null) tips.Add(tip);
         }
     }

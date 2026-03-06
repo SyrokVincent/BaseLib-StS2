@@ -15,16 +15,16 @@ public abstract class CustomPowerModel : PowerModel, ICustomModel
      */
 
 
-    public virtual string CustomPackedIconPath => null;
-    public virtual string CustomBigIconPath => null;
-    public virtual string CustomBigBetaIconPath => null;
+    public virtual string? CustomPackedIconPath => null;
+    public virtual string? CustomBigIconPath => null;
+    public virtual string? CustomBigBetaIconPath => null;
 }
 
 [HarmonyPatch(typeof(PowerModel), "PackedIconPath", MethodType.Getter)]
 class PackedIconPath
 {
     [HarmonyPrefix]
-    static bool Custom(PowerModel __instance, ref string __result)
+    static bool Custom(PowerModel __instance, ref string? __result)
     {
         if (__instance is not CustomPowerModel customPower)
             return true;
@@ -38,7 +38,7 @@ class PackedIconPath
 class BigIconPath
 {
     [HarmonyPrefix]
-    static bool Custom(PowerModel __instance, ref string __result)
+    static bool Custom(PowerModel __instance, ref string? __result)
     {
         if (__instance is not CustomPowerModel customPower)
             return true;
@@ -52,7 +52,7 @@ class BigIconPath
 class BigBetaIconPath
 {
     [HarmonyPrefix]
-    static bool Custom(PowerModel __instance, ref string __result)
+    static bool Custom(PowerModel __instance, ref string? __result)
     {
         if (__instance is not CustomPowerModel customPower)
             return true;

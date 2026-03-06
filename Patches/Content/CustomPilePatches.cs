@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using System.Reflection.Emit;
 using BaseLib.Abstracts;
 using BaseLib.Extensions;
@@ -18,6 +16,8 @@ namespace BaseLib.Patches.Content;
 
 public class CustomPiles
 {
+    public static readonly Dictionary<PileType, Func<CustomPile>> CustomPileProviders = [];
+    
     public static readonly SpireField<PlayerCombatState, Dictionary<PileType, CustomPile>> Piles = new(() =>
     {
         Dictionary<PileType, CustomPile> customPiles = [];
@@ -27,7 +27,6 @@ public class CustomPiles
         }
         return customPiles;
     });
-    public static readonly Dictionary<PileType, Func<CustomPile>> CustomPileProviders = [];
 
     public static void RegisterCustomPile(PileType pileType, Func<CustomPile> constructor)
     {
@@ -36,16 +35,17 @@ public class CustomPiles
 
     public static CardPile[] AddCustomPiles(CardPile[] original, PlayerCombatState combatState)
     {
-        return [.. original, .. Piles.Get(combatState).Values];
+        var customPiles = Piles.Get(combatState)?.Values;
+        return customPiles == null ? original : [.. original, .. customPiles];
     }
 
-    public static CustomPile GetCustomPile(PlayerCombatState state, PileType type)
+    public static CustomPile? GetCustomPile(PlayerCombatState? state, PileType type)
     {
         if (state == null) //not in combat, this may occur when game attempts to get Deck
         {
             return null;
         }
-        return Piles.Get(state).GetValueOrDefault(type);
+        return Piles.Get(state)?.GetValueOrDefault(type);
     }
 
     public static bool IsCustomPile(PileType pileType)
@@ -53,26 +53,26 @@ public class CustomPiles
         return CustomPileProviders.ContainsKey(pileType);
     }
 
-    public static Vector2 GetPosition(PileType pileType, NCard card, Vector2 size)
+    public static Vector2 GetPosition(PileType pileType, NCard? card, Vector2 size)
     {
         if (!CustomPileProviders.ContainsKey(pileType)) return Vector2.Zero;
 
         if (card == null || card.Model == null) return Vector2.Zero;
 
-        CustomPile pile = GetCustomPile(card.Model.Owner.PlayerCombatState, pileType);
+        var pile = GetCustomPile(card.Model.Owner.PlayerCombatState, pileType);
         if (pile == null) throw new Exception($"CustomPile {pileType} does not exist");
 
         return pile.GetTargetPosition(card.Model, size);
     }
 
-    public static NCard FindOnTable(CardModel card, PileType pileType)
+    public static NCard? FindOnTable(CardModel card, PileType pileType)
     {
         if (!CustomPileProviders.ContainsKey(pileType)) return null;
 
-        BaseMod.Logger.Info("Looking for NCard in Custom Pile!");
-        CustomPile pile = GetCustomPile(card.Owner.PlayerCombatState, pileType);
+        MainFile.Logger.Info("Looking for NCard in Custom Pile!");
+        var pile = GetCustomPile(card.Owner.PlayerCombatState, pileType);
 
-        return pile.GetNCard(card);
+        return pile?.GetNCard(card);
     }
 
     public static bool IsCardVisible(CardModel card)
@@ -86,7 +86,7 @@ public class CustomPiles
 class GetCombatPile
 {
     [HarmonyPrefix]
-    static bool CheckCustomPile(PileType type, Player player, ref CardPile __result)
+    static bool CheckCustomPile(PileType type, Player player, ref CardPile? __result)
     {
         __result = CustomPiles.GetCustomPile(player.PlayerCombatState, type);
         return __result == null;
@@ -133,10 +133,10 @@ class GetNCardPile
             .Step(-1)
             .Insert([
                 CodeInstruction.LoadLocal(3), //Load piletype from loc 3
-                CodeInstruction.Call(()=>CustomPiles.IsCustomPile(default)), //have bool on stack
+                CodeInstruction.Call(typeof(CustomPiles), nameof(CustomPiles.IsCustomPile)), //have bool on stack
                 CodeInstruction.LoadArgument(0), //Load card
                 CodeInstruction.LoadLocal(3), //Load piletype from loc 3
-                CodeInstruction.Call(()=>CustomPiles.FindOnTable(default, default)),
+                CodeInstruction.Call(typeof(CustomPiles), nameof(CustomPiles.FindOnTable)),
                 CodeInstruction.StoreLocal(1), //Store in localvar 1
                 new CodeInstruction(OpCodes.Brtrue_S, labels[0]) //If IsCustomPile returned true, branch to return
             ]);
@@ -194,7 +194,7 @@ class SpecialPileInCombat
             .Step(-1)
             .Insert([
                 CodeInstruction.LoadArgument(0),
-                CodeInstruction.Call(()=>CustomPiles.AddCustomPiles(default, default))
+                CodeInstruction.Call(typeof(CustomPiles), "AddCustomPiles")
             ]);
     }
     /*{
@@ -229,7 +229,7 @@ class SpecialPileInCombat
 
 public class TheBigPatchToCardPileCmdAdd
 {
-    private static Type stateMachineType;
+    private static Type? stateMachineType;
 
     public static void Patch(Harmony harmony)
     {
@@ -241,6 +241,8 @@ public class TheBigPatchToCardPileCmdAdd
 
     static List<CodeInstruction> BigPatch(IEnumerable<CodeInstruction> instructions)
     {
+        if (stateMachineType == null) throw new Exception("Failed to get state machine type for async CardPileCmd.Add");
+        
         return new InstructionPatcher(instructions)
             .Match(new InstructionMatcher() //patch createCardNode
                 .ldfld(stateMachineType.FindStateMachineField("isFullHandAdd"))
@@ -381,12 +383,12 @@ public class TheBigPatchToCardPileCmdAdd
     }
     public static bool CustomPileUseGenericTweenForOtherPlayers(CardModel card)
     {
-        CardPile pile = card.Pile;
+        var pile = card.Pile;
         return pile is CustomPile customPile && (customPile.CardShouldBeVisible(card) || !customPile.NeedsCustomTransitionVisual);
     }
     public static bool CustomPileUseCustomTween(CardModel card, NCard cardNode, CardPile oldPile, Tween tween)
     {
-        CardPile pile = card.Pile;
+        var pile = card.Pile;
         if (pile is not CustomPile customPile) return false;
 
         return customPile.CustomTween(tween, card, cardNode, oldPile);

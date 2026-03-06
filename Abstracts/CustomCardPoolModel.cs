@@ -23,7 +23,7 @@ public abstract class CustomCardPoolModel : CardPoolModel, ICustomModel
     /// </summary>
     /// <param name="card"></param>
     /// <returns></returns>
-    public virtual Texture2D CustomFrame(CustomCardModel card)
+    public virtual Texture2D? CustomFrame(CustomCardModel card)
     {
         return null;
     }

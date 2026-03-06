@@ -35,7 +35,7 @@ public class CustomPoolFilters
                 CodeInstruction.LoadArgument(0),
                 new CodeInstruction(OpCodes.Ldfld, AccessTools.DeclaredField(typeof(NCardLibrary), "_cardPoolFilters")),
                 CodeInstruction.LoadLocal(0),
-                CodeInstruction.Call(()=>GenerateCustomFilters(default, default, default, default))
+                CodeInstruction.Call(typeof(CustomPoolFilters), nameof(GenerateCustomFilters))
             ]);
     }
 
@@ -68,8 +68,8 @@ public class CustomPoolFilters
             characterFilters.Add(model, filter);
 
             //Add actual filtering
-            CardPoolModel pool = model.CardPool;
-            filtering.Add(filter, (CardModel c) => pool.AllCardIds.Contains(c.Id));
+            var pool = model.CardPool;
+            filtering.Add(filter, c => pool.AllCardIds.Contains(c.Id));
 
             //Connect signals
             filter.Connect(NCardPoolFilter.SignalName.Toggled, updateFilter);
@@ -140,7 +140,8 @@ public class CustomPoolFilters
     [HarmonyPostfix]
     static void AdjustFilterScales(NCardLibrary __instance)
     {
-        GridContainer parent = __instance._poolFilters.First().Key.GetParentControl() as GridContainer;
+        if (__instance._poolFilters.First().Key.GetParentControl() is not GridContainer parent)
+            throw new Exception("Failed to find grid container for PoolFilters");
 
         //If too many filters, shrink them to fit properly
         int count = parent.GetChildCount();

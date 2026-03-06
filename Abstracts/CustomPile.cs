@@ -32,7 +32,7 @@ public abstract class CustomPile : CardPile
 
     public abstract Vector2 GetTargetPosition(CardModel model, Vector2 size);
 
-    public virtual NCard GetNCard(CardModel card)
+    public virtual NCard? GetNCard(CardModel card)
     {
         return null;
     }

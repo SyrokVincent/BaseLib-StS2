@@ -19,23 +19,24 @@ public static class DynamicVarExtensions
     public static readonly SpireField<DynamicVar, Func<IHoverTip>> DynamicVarTips = new(() => null);
 
     //At the moment cardPlay being null seems fine - may change in the future
-    public static decimal CalculateBlock(this DynamicVar var, Creature creature, ValueProp props, CardPlay cardPlay = null, CardModel cardSource = null)
+    public static decimal CalculateBlock(this DynamicVar var, Creature creature, ValueProp props, CardPlay? cardPlay = null, CardModel? cardSource = null)
     {
         decimal amount = var.BaseValue;
 
         if (!CombatManager.Instance.IsInProgress)
         {
-            return default;
+            return amount;
         }
 
         if (CombatManager.Instance.IsEnding)
         {
-            return default;
+            return amount;
         }
 
-        CombatState combatState = creature.CombatState;
+        CombatState? combatState = creature.CombatState;
+        if (combatState == null) return amount;
 
-        amount = Hook.ModifyBlock(combatState, creature, amount, props, cardSource, cardPlay, out IEnumerable<AbstractModel> modifiers);
+        amount = Hook.ModifyBlock(combatState, creature, amount, props, cardSource, cardPlay, out var modifiers);
         amount = Math.Max(amount, 0m);
         return amount;
     }

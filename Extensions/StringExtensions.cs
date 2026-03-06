@@ -10,6 +10,6 @@ public static class StringExtensions
 {
     public static string RemovePrefix(this string id)
     {
-        return id[(id.IndexOf(TypePrefix.PREFIX_SPLIT_CHAR) + 1)..];
+        return id[(id.IndexOf(TypePrefix.PrefixSplitChar) + 1)..];
     }
 }

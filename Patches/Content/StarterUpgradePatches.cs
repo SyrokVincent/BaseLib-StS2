@@ -9,7 +9,7 @@ namespace BaseLib.Patches.Content;
 class StarterUpgradePatches
 {
     [HarmonyPrefix]
-    static bool CustomStarterUpgrade(RelicModel starterRelic, ref RelicModel __result)
+    static bool CustomStarterUpgrade(RelicModel starterRelic, ref RelicModel? __result)
     {
         if (starterRelic is CustomRelicModel customRelic)
         {
