@@ -14,7 +14,7 @@ public static class ActModelExtensions
             Overgrowth or Underdocks => 1,
             Hive => 2,
             Glory => 3,
-            _ => RunManager.Instance.DebugOnlyGetState()?.ActFloor ?? 1
+            _ => -1
         };
     }
 }

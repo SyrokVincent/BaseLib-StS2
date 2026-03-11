@@ -4,6 +4,8 @@ using BaseLib.Utils;
 using HarmonyLib;
 using MegaCrit.Sts2.Core.Modding;
 using MegaCrit.Sts2.Core.Models;
+using MegaCrit.Sts2.Core.Rooms;
+using MegaCrit.Sts2.Core.Runs;
 
 namespace BaseLib.Patches.Content;
 
@@ -63,23 +65,55 @@ public static class CustomContentDictionary
 }
 
 [HarmonyPatch(typeof(ModelDb), nameof(ModelDb.AllSharedAncients), MethodType.Getter)]
-class CustomAncientsInPoolPatch
+class CustomAncientExistence
 {
     [HarmonyPostfix]
-    static IEnumerable<AncientEventModel> AddCustomPools(IEnumerable<AncientEventModel> __result)
+    static IEnumerable<AncientEventModel> AddCustomAncientForCompendium(IEnumerable<AncientEventModel> __result)
     {
         return [.. __result, .. CustomContentDictionary.CustomAncients];
     }
 }
 
-[HarmonyPatch(typeof(ActModel), nameof(ActModel.SetSharedAncientSubset))]
-class FilterCustomAncients
+[HarmonyPatch(typeof(RunManager), nameof(RunManager.GenerateRooms))]
+public class CurrentGeneratingRunState
+{
+    public static RunState? State { get; private set; }
+    private static readonly MethodInfo StateGetter = AccessTools.PropertyGetter(typeof(RunManager), "State");
+    
+    [HarmonyPrefix]
+    static void GetState(RunManager __instance)
+    {
+        State = (RunState?) StateGetter.Invoke(__instance, []);
+    }
+
+    [HarmonyPostfix]
+    static void ClearState()
+    {
+        State = null;
+    }
+}
+[HarmonyPatch(typeof(ActModel), nameof(ActModel.GenerateRooms))]
+class AddCustomAncientsToPool
 {
     [HarmonyPrefix]
-    static void RemoveInvalid(ActModel __instance, List<AncientEventModel> sharedAncientSubset)
+    static void AddToModelPool(ActModel __instance, List<AncientEventModel>? ____sharedAncientSubset)
     {
-        sharedAncientSubset.RemoveAll(ancient =>
-            ancient is CustomAncientModel customAncient && !customAncient.IsValidForAct(__instance));
+        if (____sharedAncientSubset == null) return; //Act 1 or other act with no shared ancients
+
+        //Not a fan of this, but having them in shared ancients rather than all ancients is the easiest way to have them
+        //appear in compendium.
+        ____sharedAncientSubset.RemoveAll(CustomContentDictionary.CustomAncients.Contains);
+        
+        List<CustomAncientModel> toAdd = [..CustomContentDictionary.CustomAncients];
+        toAdd.Sort((a, b) =>  string.Compare(a.Id.Entry, b.Id.Entry, StringComparison.Ordinal));
+        
+        toAdd.RemoveAll(ancient => !ancient.IsValidForAct(__instance) || ____sharedAncientSubset.Contains(ancient));
+        foreach (ActModel act in CurrentGeneratingRunState.State?.Acts ?? [])
+        {
+            if (act == __instance) break;
+            if (act.Ancient is CustomAncientModel customAncient) toAdd.Remove(customAncient);
+        }
+        ____sharedAncientSubset.AddRange(toAdd);
     }
 }
 
@@ -134,6 +168,22 @@ class ModelDbSharedPotionPoolsPatch
     }
 }
 
+[HarmonyPatch(typeof(ActModel), nameof(ActModel.GenerateRooms))]
+class ActModelGenerateRoomsPatch
+{
+    [HarmonyPostfix]
+    static void ForceAncientToSpawn(ActModel __instance)
+    {
+        var rooms = Traverse.Create(__instance).Field<RoomSet>("_rooms").Value;
+        var rngChosenAncient = rooms.Ancient;
+        var ancientToSpawn = CustomContentDictionary.CustomAncients.Find(a => a.ShouldForceSpawn(__instance, rngChosenAncient));
+
+        if (ancientToSpawn != null)
+        {
+            rooms.Ancient = ancientToSpawn;
+        }
+    }
+}
 /*
 class CardPoolPatch
 {
