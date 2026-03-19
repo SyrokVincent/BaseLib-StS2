@@ -140,6 +140,14 @@ public partial class NModConfigPopup : NClickableControl
             _currentConfig = config;
             config.ConfigChanged += OnConfigChanged;
             Show();
+
+            var pendingMessages = ModConfig.ModConfigLogger.PendingUserMessages;
+            if (pendingMessages.Count > 0)
+            {
+                var popup = NErrorPopup.Create("Mod configuration error", string.Join('\n', pendingMessages), false);
+                NModalContainer.Instance?.Add(popup!);
+                pendingMessages.Clear();
+            }
         }
         catch (Exception e)
         {
