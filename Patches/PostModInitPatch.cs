@@ -24,7 +24,7 @@ class PostModInitPatch
             interop.ProcessType(harmony, t);
 
             bool hasSavedProperty = false;
-            foreach (var prop in t.GetProperties())
+            foreach (var prop in t.GetDeclaredProperties())
             {
                 var savedPropertyAttr = prop.GetCustomAttribute<SavedPropertyAttribute>();
                 if (savedPropertyAttr == null) continue;
