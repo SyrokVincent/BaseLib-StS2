@@ -342,11 +342,7 @@ public abstract partial class ModConfig
 
         label.AddThemeFontOverride("normal_font", kreonNormal);
         label.AddThemeFontOverride("bold_font", kreonBold);
-        label.AddThemeFontSizeOverride("normal_font_size", fontSize);
-        label.AddThemeFontSizeOverride("bold_font_size", fontSize);
-        label.AddThemeFontSizeOverride("bold_italics_font_size", fontSize);
-        label.AddThemeFontSizeOverride("italics_font_size", fontSize);
-        label.AddThemeFontSizeOverride("mono_font_size", fontSize);
+        label.AddThemeFontSizeOverrideAll(fontSize);
 
         return label;
     }
