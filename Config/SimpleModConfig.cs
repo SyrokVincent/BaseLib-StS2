@@ -13,6 +13,12 @@ namespace BaseLib.Config;
 public class SimpleModConfig : ModConfig
 {
     /// <summary>
+    /// Lists to keep track of handlers created in order to properly to dispose.
+    /// </summary>
+    protected readonly List<EventHandler> _configChangedHandlers = new();
+    protected readonly List<Action> _configReloadedHandlers = new();
+    
+    /// <summary>
     /// Auto-generate a UI from the properties used. Should be enough for the vast majority of mods,
     /// but you can also subclass SimpleModConfig and override this to get access to helpers like
     /// <see cref="CreateToggleOption"/> (in addition to the raw Create*Control methods from ModConfig),
@@ -273,6 +279,11 @@ public class SimpleModConfig : ModConfig
         {
             var member = filteredMembers[i];
             var nextMember = i < filteredMembers.Count - 1 ? filteredMembers[i + 1] : null;
+            
+            var visibleWhen = member.GetCustomAttribute<ConfigVisibleWhenAttribute>();
+            // Setting up the reference to the divider linked to this config so we can set its visibility
+            Control? associatedDivider = null;
+            Action? updateVisibility = null;
 
             // Create a section header if this property starts a new section
             var sectionName = member.GetCustomAttribute<ConfigSectionAttribute>()?.Name;
@@ -293,6 +304,34 @@ public class SimpleModConfig : ModConfig
                     _ => throw new UnreachableException("Invalid type that should have been filtered out")
                 };
                 targetContainer.AddChild(newRow);
+                
+                // Check for conditional visibility
+                if (visibleWhen != null)
+                {
+                    var watchedProp = GetType().GetProperty(visibleWhen.WatchedPropertyName);
+                    if (watchedProp != null)
+                    {
+                        updateVisibility = () =>
+                        {
+                            var currentVal = watchedProp.GetValue(null);
+                            var shouldBeVisible = Equals(currentVal?.ToString(), visibleWhen.ExpectedValue?.ToString());
+
+                            if (visibleWhen.Invert)
+                                shouldBeVisible = !shouldBeVisible;
+
+                            newRow.Visible = shouldBeVisible;
+                            if (associatedDivider != null)
+                                associatedDivider.Visible = shouldBeVisible;
+                        };
+                        
+                        EventHandler configChangedHandler = (_, _) => updateVisibility();
+                        ConfigChanged += configChangedHandler;
+                        OnConfigReloaded += updateVisibility;
+                        
+                        _configChangedHandlers.Add(configChangedHandler);
+                        _configReloadedHandlers.Add(updateVisibility);
+                    }
+                }
 
                 var previousSetting = currentSetting;
                 currentSetting = newRow.SettingControl;
@@ -322,8 +361,14 @@ public class SimpleModConfig : ModConfig
             var nextIsSameSection = nextSectionName == null || nextSectionName == currentSection;
             if (nextMember != null && nextIsSameSection)
             {
-                targetContainer.AddChild(CreateDividerControl());
+                var divider = CreateDividerControl();
+                targetContainer.AddChild(divider);
+
+                // If the row above has conditional visibility, link the divider to it
+                if (visibleWhen != null)
+                    associatedDivider = divider;
             }
+            updateVisibility?.Invoke();
         }
 
         return;
@@ -343,5 +388,17 @@ public class SimpleModConfig : ModConfig
             PropertyInfo p => p.GetMethod?.MetadataToken ?? p.SetMethod?.MetadataToken ?? 0,
             _ => 0
         };
+    }
+    
+    public void ClearUIEventHandlers()
+    {
+        foreach (var handler in _configChangedHandlers)
+            ConfigChanged -= handler;
+        
+        foreach (var handler in _configReloadedHandlers)
+            OnConfigReloaded -= handler;
+        
+        _configChangedHandlers.Clear();
+        _configReloadedHandlers.Clear();
     }
 }

@@ -1,3 +1,4 @@
+using BaseLib.Extensions;
 using MegaCrit.Sts2.Core.CardSelection;
 using MegaCrit.Sts2.Core.Commands;
 using MegaCrit.Sts2.Core.Commands.Builders;
@@ -159,6 +160,32 @@ public static class CommonActions
     }
     
     /// <summary>
+    /// Applies the power specified as the generic parameter to the target using a PowerVar defined for that power.
+    /// </summary>
+    /// <returns></returns>
+    public static async Task<T?> Apply<T>(Creature target, DynamicVarSource dynVarSource, bool silent = false) where T : PowerModel
+    {
+        return await PowerCmd.Apply<T>(target, dynVarSource.DynamicVars.Power<T>().BaseValue, dynVarSource.Owner, dynVarSource.Card, silent);
+    }
+    /// <summary>
+    /// Applies the power specified as the generic parameter to multiple targets using a PowerVar defined for that power.
+    /// </summary>
+    /// <returns></returns>
+    public static async Task<IReadOnlyList<T>> Apply<T>(IEnumerable<Creature> targets, DynamicVarSource dynVarSource, bool silent = false) where T : PowerModel
+    {
+        return await PowerCmd.Apply<T>(targets, dynVarSource.DynamicVars.Power<T>().BaseValue, dynVarSource.Owner, dynVarSource.Card, silent);
+    }
+    
+    /// <summary>
+    /// Applies the power specified as the generic parameter to the target using a PowerVar defined for that power.
+    /// </summary>
+    /// <returns></returns>
+    public static async Task<T?> Apply<T>(Creature target, CardModel card, bool silent = false) where T : PowerModel
+    {
+        return await PowerCmd.Apply<T>(target, card.DynamicVars.Power<T>().BaseValue, card.Owner.Creature, card, silent);
+    }
+    
+    /// <summary>
     /// Applies the power specified as the generic parameter to the target.
     /// </summary>
     /// <returns></returns>
@@ -166,10 +193,18 @@ public static class CommonActions
     {
         return await PowerCmd.Apply<T>(target, amount, card?.Owner.Creature, card, silent);
     }
+    
+    /// <summary>
+    /// Applies the power specified as the generic parameter to the card's owner using a PowerVar defined for that power.
+    /// </summary>
+    public static async Task<T?> ApplySelf<T>(CardModel card, bool silent = false) where T : PowerModel
+    {
+        return await ApplySelf<T>(card, card.DynamicVars.Power<T>().BaseValue, silent);
+    }
+    
     /// <summary>
     /// Applies the power specified as the generic parameter to the card's owner.
     /// </summary>
-    /// <returns></returns>
     public static async Task<T?> ApplySelf<T>(CardModel card, decimal amount, bool silent = false) where T : PowerModel
     {
         return await PowerCmd.Apply<T>(card.Owner.Creature, amount, card.Owner.Creature, card, silent);

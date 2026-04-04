@@ -144,3 +144,18 @@ public class ConfigButtonAttribute(string buttonLabelKey) : Attribute
 {
     public string ButtonLabelKey { get; } = buttonLabelKey;
 }
+
+/// <summary>
+/// Conditionally hides this config row in the UI based on the value of another config property.
+/// The row will only be visible when the watched property equals the specified value.
+/// </summary>
+/// <param name="watchedPropertyName">The name of the property to watch (must be in the same ModConfig class).</param>
+/// <param name="expectedValue">The value the watched property must have for this row to be visible.</param>
+/// <param name="invert">If true, the row is visible when the value does NOT match.</param>
+[AttributeUsage(AttributeTargets.Property | AttributeTargets.Method)]
+public class ConfigVisibleWhenAttribute(string watchedPropertyName, object expectedValue, bool invert = false) : Attribute
+{
+    public string WatchedPropertyName { get; } = watchedPropertyName;
+    public object ExpectedValue { get; } = expectedValue;
+    public bool Invert { get; } = invert;
+}
