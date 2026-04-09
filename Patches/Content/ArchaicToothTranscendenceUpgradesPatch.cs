@@ -18,7 +18,7 @@ class ArchaicToothTranscendenceUpgradesPatch
             _customTranscendence = [];
             foreach (var cardModel in ModelDb.AllCards)
             {
-                if (cardModel is ICustomTranscendenceTarget target)
+                if (cardModel is ITranscendenceCard target)
                 {
                     _customTranscendence[cardModel.Id] = target.GetTranscendenceTransformedCard();
                 }

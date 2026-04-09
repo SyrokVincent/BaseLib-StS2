@@ -2,7 +2,7 @@
 
 namespace BaseLib.Abstracts;
 
-public interface ICustomTranscendenceTarget
+public interface ITranscendenceCard
 {
     public CardModel GetTranscendenceTransformedCard();
 }
