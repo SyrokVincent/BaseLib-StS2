@@ -19,9 +19,9 @@
         <PackageId>Alchyr.Sts2.BaseLib</PackageId>
         <Title>BaseLib-StS2</Title>
         <Description>Mod for Slay the Spire 2 providing utilities and features for other mods.</Description>
-        <Version>0.3.0</Version>
+        <Version>3.0.1</Version>
         <Authors>Alchyr</Authors>
-        <PackageReleaseNotes>correct version number</PackageReleaseNotes>
+        <PackageReleaseNotes>bugfixes, mod config updates, increase version number</PackageReleaseNotes>
         <PackageTags>c#</PackageTags>
         <NoWarn>$(NoWarn);NU5128;MSB3270</NoWarn>
 

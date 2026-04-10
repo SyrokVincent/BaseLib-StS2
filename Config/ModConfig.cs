@@ -87,6 +87,12 @@ public abstract partial class ModConfig
         }
     }
 
+    static ModConfig()
+    {
+        // Enable serialization/deserialization of Godot.Color, preserving "overbright" values (>1.0)
+        TypeDescriptor.AddAttributes(typeof(Color), new TypeConverterAttribute(typeof(GodotColorConverter)));
+    }
+
     public ModConfig(string? filename = null)
     {
         ModPrefix = GetType().GetPrefix();
@@ -444,6 +450,14 @@ public abstract partial class ModConfig
         var lineEdit = new NConfigLineEdit();
         lineEdit.Initialize(this, property);
         return lineEdit;
+    }
+
+    /// <inheritdoc cref="CreateRawTickboxControl"/>
+    protected NConfigColorPicker CreateRawColorPickerControl(PropertyInfo property)
+    {
+        var colorPicker = new NConfigColorPicker();
+        colorPicker.Initialize(this, property);
+        return colorPicker;
     }
 
     /// <summary>

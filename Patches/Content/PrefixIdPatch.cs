@@ -14,27 +14,29 @@ public class PrefixIdPatch
     private static readonly ConcurrentDictionary<Type, string> IdCache = new();
 
     [HarmonyPostfix]
-    static string AdjustID(string __result, Type type)
+    static void AdjustID(ref string __result, Type type)
     {
         if (IdCache.TryGetValue(type, out var cachedId))
         {
-            return cachedId;
+            __result = cachedId;
+            return;
         }
         
         var attr = type.GetCustomAttribute<CustomIDAttribute>();
         if (attr != null)
         {
             IdCache[type] = attr.ID;
-            return attr.ID;
+            __result = attr.ID;
+            return;
         }
         
         if (type.IsAssignableTo(typeof(ICustomModel)))
         {
             IdCache[type] = type.GetPrefix() + __result;
-            return IdCache[type];
+            __result = IdCache[type];
+            return;
         }
 
-        IdCache[type] = __result;
-        return __result;
+        IdCache[type] = __result; //No modification
     }
 }

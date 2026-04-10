@@ -98,22 +98,29 @@ public partial class NConfigOptionRow : MarginContainer
         if (_hoverTip == null || !IsVisibleInTree()) return;
 
         var hoveredControl = GetViewport().GuiGetHoveredControl();
-        var shouldShowHoverTip = hoveredControl != null && (hoveredControl == this || IsAncestorOf(hoveredControl));
-
-        if (shouldShowHoverTip)
-        {
-            // Exception: don't show if we're hovering a blocker/dismisser (used by e.g. NConfigDropdown when open),
-            // unless the mouse pointer is also inside this row.
-            var viewportSize = GetViewport().GetVisibleRect().Size;
-            if (hoveredControl!.Size.X >= viewportSize.X * 0.8f && hoveredControl.Size.Y >= viewportSize.Y * 0.8f)
-                shouldShowHoverTip = GetGlobalRect().HasPoint(GetGlobalMousePosition());
-        }
+        var shouldShowHoverTip = hoveredControl != null
+                                 && (hoveredControl == this || IsAncestorOf(hoveredControl))
+                                 && !HasVisiblePopup(this)
+                                 && !IsFullScreenBlocker(hoveredControl);
 
         if (shouldShowHoverTip && !_hoverTipVisible) OnHovered();
         else if (!shouldShowHoverTip && _hoverTipVisible) OnUnhovered();
 
         _hoverTipVisible = shouldShowHoverTip;
     }
+
+// True if we're hovering the hidden full screen blocker used by Dropdown to detect clicks outside itself.q
+// Known issue: will return false when hovering nodes below the current when a Dropdown is active; I think
+// this is because of Godot's drawing order.
+    private bool IsFullScreenBlocker(Control control)
+    {
+        var viewportSize = GetViewport().GetVisibleRect().Size;
+        return control.Size.X >= viewportSize.X * 0.8f
+               && control.Size.Y >= viewportSize.Y * 0.8f;
+    }
+
+    private static bool HasVisiblePopup(Node node) =>
+        node is Window { Visible: true } || node.GetChildren(includeInternal: true).Any(HasVisiblePopup);
 
     private void OnHovered()
     {

@@ -71,7 +71,9 @@ public static class HealthBarForecastPatch
 
         var maxWidth = GetMaxFgWidth(healthBar);
         var hpForeground = healthBar._hpForeground;
-        var baseHp = hpForeground.Visible ? Math.Clamp(HpFromOffsetRight(healthBar, hpForeground.OffsetRight), 0, creature.CurrentHp) : 0;
+        var hpFromForeground =
+            Math.Clamp(HpFromOffsetRight(healthBar, hpForeground.OffsetRight), 0, creature.CurrentHp);
+        var baseHp = hpForeground.Visible || hpFromForeground < creature.CurrentHp ? hpFromForeground : 0;
 
         var rightSegments = customSegments
             .Where(segment => segment.Direction == HealthBarForecastDirection.FromRight)
