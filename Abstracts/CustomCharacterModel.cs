@@ -12,6 +12,7 @@ using BaseLib.Extensions;
 using BaseLib.Patches.Content;
 using BaseLib.Utils.NodeFactories;
 using MegaCrit.Sts2.Core.Helpers;
+using MegaCrit.Sts2.Core.Multiplayer.Game.Lobby;
 using MegaCrit.Sts2.Core.Nodes.RestSite;
 using MegaCrit.Sts2.Core.Nodes.Screens.CharacterSelect;
 using MegaCrit.Sts2.Core.Nodes.Screens.Shops;
@@ -350,7 +351,16 @@ class VanillaRandomCharacterEligibilityPatch
     static IEnumerable<MethodBase> TargetMethods()
     {
         yield return AccessTools.DeclaredMethod(typeof(NCharacterSelectScreen), nameof(NCharacterSelectScreen.UpdateRandomCharacterVisibility));
-        yield return AccessTools.DeclaredMethod(typeof(NCharacterSelectScreen), "RollRandomCharacter");
+        var method = AccessTools.DeclaredMethod(typeof(NCharacterSelectScreen), "RollRandomCharacter") ?? //main
+                     AccessTools.DeclaredMethod(typeof(StartRunLobby), "BeginRunLocally"); //beta
+        if (method == null)
+        {
+            BaseLibMain.Logger.Info("Failed to patch random character roll");
+        }
+        else
+        {
+            yield return method;
+        }
         yield return AccessTools.DeclaredMethod(typeof(NCharacterSelectButton), nameof(NCharacterSelectButton.Init));
     }
 
