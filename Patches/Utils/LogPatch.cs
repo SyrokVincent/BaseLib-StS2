@@ -15,7 +15,7 @@ public partial class LogListener : Godot.Logger
     {
         NLogWindow.AddLog(message);
 
-        if (error)
+        if (error && message.Contains("ERROR"))
         {
             NLogWindow.OpenOnErr();
         }

@@ -26,7 +26,7 @@ public partial class NLogWindow : Window
 
     public static void OpenOnErr()
     {
-        if (_listeners.Count > 0 || _openedOnErr) return;
+        if (!BaseLibConfig.OpenLogWindowOnError || _listeners.Count > 0 || _openedOnErr) return;
         _openedOnErr = true;
         OpenLogWindow.OpenWindow(true);
     }
