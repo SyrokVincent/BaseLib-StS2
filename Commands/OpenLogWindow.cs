@@ -25,18 +25,25 @@ public class OpenLogWindow : AbstractConsoleCmd
     {
         var instance = NGame.Instance;
         if (instance == null) return;
-        
-        Window window = instance.GetWindow();
-        window.GuiEmbedSubwindows = false;
-        var scene = ResourceLoader.Load<PackedScene>("res://BaseLib/scenes/LogWindow.tscn").Instantiate<NLogWindow>();
 
-        // Prevent flicker on open (open in the final position)
-        scene.Visible = false;
-        window.AddChildSafely(scene);
-        LogWindowPlacement.SetupPosition(scene, window);
-        scene.Visible = true;
+        try
+        {
+            Window window = instance.GetWindow();
+            window.GuiEmbedSubwindows = false;
+            var scene = ResourceLoader.Load<PackedScene>("res://BaseLib/scenes/LogWindow.tscn").Instantiate<NLogWindow>();
 
-        if (!stealFocus)
-            window.GrabFocus();
+            // Prevent flicker on open (open in the final position)
+            scene.Visible = false;
+            window.AddChildSafely(scene);
+            LogWindowPlacement.SetupPosition(scene, window);
+            scene.Visible = true;
+
+            if (!stealFocus)
+                window.GrabFocus();
+        }
+        catch (Exception _)
+        {
+            BaseLibMain.Logger.Info("Failed to open log window: {e.ToString}");
+        }
     }
 }
