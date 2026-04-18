@@ -10,6 +10,7 @@ using System.Reflection;
 using System.Reflection.Emit;
 using BaseLib.Extensions;
 using BaseLib.Patches.Content;
+using BaseLib.Patches.UI;
 using BaseLib.Utils.NodeFactories;
 using MegaCrit.Sts2.Core.Helpers;
 using MegaCrit.Sts2.Core.Multiplayer.Game.Lobby;
@@ -298,6 +299,11 @@ public class ModelDbCustomCharacters
         if (!CustomContentDictionary.RegisterType(character.GetType())) return;
         
         CustomCharacters.Add(character);
+        var cookie = character.CustomYummyCookie;
+        if (cookie != null)
+        {
+            RelicImageOverridePatch.AddOverride<YummyCookie>(cookie, (relic) => relic.IsMutable && character.Id.Equals(relic.Owner?.Character.Id));
+        }
     }
 }
 
@@ -718,44 +724,5 @@ class DeathSfx
 
         __result = customChar.CustomDeathSfx;
         return __result == null;
-    }
-}
-
-public record RelicIconData(string? BigIconPath, string? PackedIconPath, string? PackedIconOutlinePath);
-
-[HarmonyPatch]
-public class CustomYummyCookiePathPatches
-{
-    [HarmonyPatch(typeof(RelicModel), nameof(RelicModel.PackedIconPath), MethodType.Getter)]
-    [HarmonyPrefix]
-    static bool PackedIconPath(RelicModel __instance, ref string __result)
-    {
-        return TryGetCustomPath(__instance, y => y.PackedIconPath, ref __result);
-    }
-
-    [HarmonyPatch(typeof(RelicModel), "PackedIconOutlinePath", MethodType.Getter)]
-    [HarmonyPrefix]
-    static bool PackedIconOutlinePath(RelicModel __instance, ref string __result)
-    {
-        return TryGetCustomPath(__instance, y => y.PackedIconOutlinePath, ref __result);
-    }
-    
-    [HarmonyPatch(typeof(RelicModel), "BigIconPath", MethodType.Getter)]
-    [HarmonyPrefix]
-    static bool BigIconPath(RelicModel __instance, ref string __result)
-    {
-        return TryGetCustomPath(__instance, y => y.BigIconPath, ref __result);
-    }
-
-    static bool TryGetCustomPath(RelicModel instance, Func<RelicIconData, string?> selector, ref string result)
-    {
-        if (instance is not YummyCookie cookie || 
-            cookie.IsCanonical ||
-            cookie.Owner.Character is not CustomCharacterModel { CustomYummyCookie: { } yummy }
-           ) return true;
-        var path = selector(yummy);
-        if (path is null) return true;
-        result = path;
-        return false;
     }
 }
