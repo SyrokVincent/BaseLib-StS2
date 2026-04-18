@@ -13,6 +13,10 @@ namespace BaseLib.Patches;
 
 //Simplest patch that occurs after mod initialization, before anything else is done.
 //See OneTimeInitialization.ExecuteEssential
+
+//TODO - If no mods that modify gameplay and use baselib as a dependency are enabled, exclude basemod models from database
+//This would allow features like vitality to be merged.
+
 [HarmonyPatch(typeof(LocManager), nameof(LocManager.Initialize))] 
 class PostModInitPatch
 {
