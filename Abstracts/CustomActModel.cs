@@ -1,9 +1,11 @@
 ﻿using System.Reflection.Emit;
 using BaseLib.Acts;
+using BaseLib.Patches.Content;
 using Godot;
 using HarmonyLib;
 using MegaCrit.Sts2.Core.Achievements;
 using MegaCrit.Sts2.Core.Helpers;
+using MegaCrit.Sts2.Core.Map;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Nodes.GodotExtensions;
 using MegaCrit.Sts2.Core.Nodes.Rooms;
@@ -17,7 +19,16 @@ namespace BaseLib.Abstracts;
 
 public abstract class CustomActModel : ActModel, ICustomModel
 {
-    
+    public int ActNumber { get; private set; }
+    protected CustomActModel(int actNumber = -1, bool autoAdd = true)
+    {
+        ActNumber = actNumber;
+        if (actNumber != -1 && autoAdd)
+        {
+            CustomContentDictionary.AddAct(this);
+        }
+    }
+        
     #region default values
     
     public override Color MapTraveledColor => new Color("27221C");
@@ -35,8 +46,34 @@ public abstract class CustomActModel : ActModel, ICustomModel
     public override string ChestSpineSkinNameStroke => "act3_stroke";
     public override string ChestOpenSfx => "event:/sfx/ui/treasure/treasure_act3";
     
+    // Must be overriden as its abstract, even if you don't need it
+    // Only used in Overgrowth specifically for the very first run, so just override it here with nothing
+    protected override void ApplyActDiscoveryOrderModifications(UnlockState unlockState) { }
+    
+    // Matches values by default to mirror the base game Acts
+    public override MapPointTypeCounts GetMapPointTypes(Rng mapRng)
+    {
+        int restCount = 6;
+        int unknownCount = MapPointTypeCounts.StandardRandomUnknownCount(mapRng);
+        switch (ActNumber)
+        {
+            case 1:
+                restCount = mapRng.NextGaussianInt(7, 1, 6, 7);
+                break;
+            case 2:
+                restCount = mapRng.NextGaussianInt(6, 1, 6, 7);
+                unknownCount--;
+                break;
+            case 3:
+                restCount = mapRng.NextInt(5, 7);
+                unknownCount--;
+                break;
+        }
+        return new MapPointTypeCounts(unknownCount, restCount);
+    }
+    
     #endregion default values
-
+    
     /// <summary>
     /// Override this if you want to provide your own BackgroundScene
     /// </summary>
@@ -56,12 +93,7 @@ public abstract class CustomActModel : ActModel, ICustomModel
     {
         return  new BackgroundAssets("glory", Rng.Chaotic);
     }
-    
-    // Must be overriden as its abstract, even if you don't need it
-    // Only used in Overgrowth specifically for the very first run, so just override it here with nothing
-    protected override void ApplyActDiscoveryOrderModifications(UnlockState unlockState) { }
-    
-    
+
     #region Patches
     
     [HarmonyPatch(typeof(ActModel), nameof(ActModel.BackgroundScenePath), MethodType.Getter)]
